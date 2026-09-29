@@ -294,7 +294,11 @@ public class MetricsCollector {
     }
 
     public static void exportToCsv(List<ExperimentResult> results, String filename) throws IOException {
-        try (PrintWriter w = new PrintWriter(new FileWriter(filename))) {
+        java.io.File file = new java.io.File(filename);
+        if (file.getParentFile() != null) {
+            file.getParentFile().mkdirs();
+        }
+        try (PrintWriter w = new PrintWriter(new FileWriter(file))) {
             w.println("Algorithm,Dataset,TotalTasks,Makespan_s,TEC_Joule,TEC_kWh," +
                       "DegreeOfImbalance,ResourceUtilization_pct,Throughput_task_s," +
                       "AvgTurnaround_s,AvgWaitingTime_s,LoadBalanceStdDev");
