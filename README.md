@@ -212,15 +212,15 @@ Distribusi Weibull dengan shape < 1 menghasilkan banyak task kecil dan sedikit t
 | **④ Resource Utilization (%)** | **30,00** | 30,00 | 28,96 | 0,00% |
 | **⑤ Throughput (task/s)** | **0,406610** | 0,395669 | 0,222657 | **+2,77%** |
 
-### 5.2 Skenario 2 Dataset Log-Normal (GoCJ Proxy)
+### 5.2 Skenario 2 Dataset GoCJ Real (Mendeley Data)
 
 | Metrik | LJFP (Diusulkan) | MCT (Baseline 1) | FCFS (Baseline 2) | LJFP vs MCT |
 |:---|:---:|:---:|:---:|:---:|
-| **① Makespan (s)** | **1.208,61** | 1.210,39 | 2.289,69 | **-0,15%** |
-| **② TEC (Joule)** | **548.946,3** | 549.456,3 | 926.329,0 | **-0,09%** |
-| **③ Degree of Imbalance** | **0,001036** | 0,051680 | 1,071122 | **-98,00%** |
-| **④ Resource Utilization (%)** | **30,00** | 30,00 | 27,42 | 0,00% |
-| **⑤ Throughput (task/s)** | **0,413698** | 0,413089 | 0,218370 | **+0,15%** |
+| **① Makespan (s)** | **1.508,72** | 1.501,25 | 3.005,43 | +0,50% |
+| **② TEC (Joule)** | **685.982,3** | 683.287,8 | 1.209.307,6 | +0,39% |
+| **③ Degree of Imbalance** | **0,002252** | 0,017112 | 1,147668 | **-86,84%** |
+| **④ Resource Utilization (%)** | **30,00** | 30,00 | 26,64 | 0,00% |
+| **⑤ Throughput (task/s)** | **0,331407** | 0,333056 | 0,166366 | -0,50% |
 
 ### 5.3 Analisis Hasil
 
