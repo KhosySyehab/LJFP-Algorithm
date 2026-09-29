@@ -1,11 +1,7 @@
-<p align="center">
-  <img src="https://upload.wikimedia.org/wikipedia/id/thumb/3/35/ITS_logo.jpg/220px-ITS_logo.jpg" alt="Logo ITS" width="130">
-</p>
-
-<h1 align="center">LAPORAN TUGAS</h1>
-<h2 align="center">Strategi Optimasi Komputasi Awan (SOKA) — 2026</h2>
+<h1 align="center">LJFP Algorithm</h1>
+<h2 align="center">Strategi Optimasi Komputasi Awan (SOKA) 2026</h2>
 <h3 align="center"><em>Optimasi Penjadwalan Task Menggunakan Algoritma LJFP (Longest Job to Fastest Processor)</em></h3>
-<h4 align="center">Departemen Teknologi Informasi — Institut Teknologi Sepuluh Nopember (ITS)</h4>
+<h4 align="center">Departemen Teknologi Informasi Institut Teknologi Sepuluh Nopember (ITS)</h4>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Simulator-CloudSim_Plus_8.0.0-007ACC?style=flat-square&logo=java&logoColor=white">
@@ -20,13 +16,13 @@
 
 ## Anggota Kelompok 6
 
-| No. | Nama Mahasiswa | NRP | Peran / Fokus |
+| No. | Nama Mahasiswa | NRP | Jobdesk |
 | :---: | :--- | :---: | :--- |
-| 1 | Ivan Syarifuddin | 5027241045 | Arsitektur Datacenter & Simulasi |
-| 2 | Reza Aziz Simatupang | 5027241051 | Algoritma LJFP & MCT |
-| 3 | Nisrina Bilqis | 5027241054 | Dataset & Preprocessing |
-| 4 | Ananda Widi Alrafi | 5027241067 | Metrik Evaluasi & Analisis |
-| 5 | Muhammad Khosyi Syehab | 5027241089 | Real-World (Docker + Monitoring) |
+| 1 | Ivan Syarifuddin | 5027241045 | - |
+| 2 | Reza Aziz Simatupang | 5027241051 | - |
+| 3 | Nisrina Bilqis | 5027241054 | - |
+| 4 | Ananda Widi Alrafi | 5027241067 | - |
+| 5 | Muhammad Khosyi Syehab | 5027241089 | Architecture Design & Algorithm Simulation |
 
 ---
 
@@ -48,16 +44,16 @@
 
 ### 1.1 Latar Belakang
 
-Penjadwalan task pada lingkungan cloud heterogen adalah tantangan kritis dalam komputasi awan modern. Ketika beban kerja memiliki disparitas ukuran yang sangat tinggi (beberapa task berukuran 1.000 MI, sementara yang lain mencapai 900.000 MI), algoritma penjadwalan naif seperti FCFS akan menghasilkan ketimpangan beban yang parah — task besar terjebak di VM lambat, menciptakan bottleneck yang menaikkan makespan secara drastis.
+Penjadwalan task pada lingkungan cloud heterogen adalah tantangan kritis dalam komputasi awan modern. Ketika beban kerja memiliki disparitas ukuran yang sangat tinggi (beberapa task berukuran 1.000 MI, sementara yang lain mencapai 900.000 MI), algoritma penjadwalan naif seperti FCFS akan menghasilkan ketimpangan beban yang parah task besar terjebak di VM lambat, menciptakan bottleneck yang menaikkan makespan secara drastis.
 
 ### 1.2 Solusi: Algoritma LJFP
 
 **LJFP (Longest Job to Fastest Processor)** adalah algoritma heuristik *list scheduling* yang secara eksplisit menyelesaikan masalah ini:
 
-> *"Jika ada task raksasa, pastikan ia dikerjakan oleh prosesor terkencang — bukan terjebak mengantri di VM lambat."*
+> *"Jika ada task raksasa, pastikan ia dikerjakan oleh prosesor terkencang bukan terjebak mengantri di VM lambat."*
 
 Prinsip kerja LJFP dalam 2 langkah:
-1. **Sort**: Urutkan semua task secara **descending** berdasarkan panjang instruksi (MI) — task terpanjang diprioritaskan.
+1. **Sort**: Urutkan semua task secara **descending** berdasarkan panjang instruksi (MI) task terpanjang diprioritaskan.
 2. **Assign**: Untuk setiap task (dari terpanjang ke terpendek), pilih VM yang menghasilkan **Estimated Completion Time (ECT) terkecil** secara greedy.
 
 ```
@@ -122,7 +118,7 @@ flowchart TD
 
 ## 3. Implementasi Algoritma
 
-### 3.1 LJFP — Algoritma Utama
+### 3.1 LJFP Algoritma Utama
 
 **File**: [`src/main/java/com/kelompok6/LjfpBroker.java`](src/main/java/com/kelompok6/LjfpBroker.java)
 
@@ -132,7 +128,7 @@ void schedule(tasks, vms) {
     // Step 1: Sort DESCENDING by Length (Longest Job First)
     tasks.sort(by length, descending);
 
-    // Step 2: Greedy assignment — min ECT
+    // Step 2: Greedy assignment min ECT
     Map<vmId, readyTime> = init 0.0 for all VMs;
 
     for each task in tasks:
@@ -148,13 +144,13 @@ void schedule(tasks, vms) {
 
 **Kompleksitas**: O(N log N) sorting + O(N × M) assignment, N=task, M=VM.
 
-### 3.2 MCT — Baseline 1
+### 3.2 MCT Baseline 1
 
 **File**: [`src/main/java/com/kelompok6/MctBroker.java`](src/main/java/com/kelompok6/MctBroker.java)
 
-Identik dengan LJFP tetapi **tanpa pre-sorting**. Task diproses dalam urutan waktu kedatangan. Ini menjadikan MCT sebagai *fair baseline* — logika assignment sama, hanya urutan input yang berbeda.
+Identik dengan LJFP tetapi **tanpa pre-sorting**. Task diproses dalam urutan waktu kedatangan. Ini menjadikan MCT sebagai *fair baseline* logika assignment sama, hanya urutan input yang berbeda.
 
-### 3.3 FCFS — Baseline 2
+### 3.3 FCFS Baseline 2
 
 **File**: [`src/main/java/com/kelompok6/FcfsBroker.java`](src/main/java/com/kelompok6/FcfsBroker.java)
 
@@ -172,7 +168,7 @@ Round-robin assignment berdasarkan urutan kedatangan. Tidak ada prediksi beban s
 
 ## 4. Dataset Uji Coba
 
-### 4.1 Dataset Sintetis — Distribusi Weibull (Skenario 1)
+### 4.1 Dataset Sintetis Distribusi Weibull (Skenario 1)
 
 **Script**: [`generate_dataset.py`](generate_dataset.py)
 
@@ -184,9 +180,9 @@ Round-robin assignment berdasarkan urutan kedatangan. Tidak ada prediksi beban s
 | Mean | ~105.536 MI |
 | PE Requirement | 1 (semua independen) |
 
-Distribusi Weibull dengan shape < 1 menghasilkan banyak task kecil dan sedikit task raksasa — kondisi ideal untuk menguji LJFP.
+Distribusi Weibull dengan shape < 1 menghasilkan banyak task kecil dan sedikit task raksasa kondisi ideal untuk menguji LJFP.
 
-### 4.2 Dataset Log-Normal — GoCJ Proxy (Skenario 2)
+### 4.2 Dataset Log-Normal GoCJ Proxy (Skenario 2)
 
 **Script**: [`preprocess_gocj.py`](preprocess_gocj.py)
 
@@ -205,7 +201,7 @@ Distribusi Weibull dengan shape < 1 menghasilkan banyak task kecil dan sedikit t
 
 > **Semua 500 task berhasil diselesaikan tanpa kegagalan alokasi pada kedua skenario.**
 
-### 5.1 Skenario 1 — Dataset Sintetis Weibull
+### 5.1 Skenario 1 Dataset Sintetis Weibull
 
 | Metrik | LJFP (Diusulkan) | MCT (Baseline 1) | FCFS (Baseline 2) | LJFP vs MCT |
 |:---|:---:|:---:|:---:|:---:|
@@ -216,7 +212,7 @@ Distribusi Weibull dengan shape < 1 menghasilkan banyak task kecil dan sedikit t
 | **④ Resource Utilization (%)** | **30,00** | 30,00 | 28,96 | 0,00% |
 | **⑤ Throughput (task/s)** | **0,406610** | 0,395669 | 0,222657 | **+2,77%** |
 
-### 5.2 Skenario 2 — Dataset Log-Normal (GoCJ Proxy)
+### 5.2 Skenario 2 Dataset Log-Normal (GoCJ Proxy)
 
 | Metrik | LJFP (Diusulkan) | MCT (Baseline 1) | FCFS (Baseline 2) | LJFP vs MCT |
 |:---|:---:|:---:|:---:|:---:|
@@ -228,7 +224,7 @@ Distribusi Weibull dengan shape < 1 menghasilkan banyak task kecil dan sedikit t
 
 ### 5.3 Analisis Hasil
 
-1. **Makespan**: LJFP unggul atas MCT pada kedua skenario (−2,69% sintetis; −0,15% log-normal) dan jauh mengungguli FCFS (>45% lebih cepat). Keunggulan terbesar terlihat pada dataset Weibull karena distribusinya sangat skewed — di sinilah sorting LJFP paling berpengaruh.
+1. **Makespan**: LJFP unggul atas MCT pada kedua skenario (−2,69% sintetis; −0,15% log-normal) dan jauh mengungguli FCFS (>45% lebih cepat). Keunggulan terbesar terlihat pada dataset Weibull karena distribusinya sangat skewed di sinilah sorting LJFP paling berpengaruh.
 
 2. **Degree of Imbalance (DI)**: Ini adalah keunggulan paling dramatis. LJFP mereduksi DI sebesar **92,60%** (sintetis) dan **98,00%** (log-normal) dibandingkan MCT. Nilai DI LJFP mendekati 0, artinya beban terdistribusi hampir sempurna.
 
@@ -236,7 +232,7 @@ Distribusi Weibull dengan shape < 1 menghasilkan banyak task kecil dan sedikit t
 
 4. **Throughput**: LJFP memproses lebih banyak task per detik (+2,77% vs MCT pada skenario sintetis).
 
-5. **Turnaround Time**: LJFP memiliki turnaround time lebih tinggi dari MCT. Ini adalah trade-off yang *diharapkan*: LJFP memprioritas task besar ke VM cepat, sehingga task kecil harus menunggu lebih lama. Namun, **makespan keseluruhan lebih rendah** — artinya sistem secara agregat lebih efisien.
+5. **Turnaround Time**: LJFP memiliki turnaround time lebih tinggi dari MCT. Ini adalah trade-off yang *diharapkan*: LJFP memprioritas task besar ke VM cepat, sehingga task kecil harus menunggu lebih lama. Namun, **makespan keseluruhan lebih rendah** artinya sistem secara agregat lebih efisien.
 
 ---
 
@@ -334,9 +330,9 @@ python3 preprocess_gocj.py
 ### Output
 
 Hasil tersimpan di folder `results/`:
-- `results/synthetic_results.csv` — Skenario 1 (Weibull)
-- `results/gocj_results.csv` — Skenario 2 (Log-Normal)
-- `results/all_results.csv` — Gabungan semua hasil
+- `results/synthetic_results.csv` Skenario 1 (Weibull)
+- `results/gocj_results.csv` Skenario 2 (Log-Normal)
+- `results/all_results.csv` Gabungan semua hasil
 
 ---
 
@@ -393,12 +389,13 @@ LJFP-Algorithm/
 2. Beloglazov A, Buyya R. Optimal online deterministic algorithms and adaptive heuristics for energy and performance efficient dynamic consolidation of virtual machines in cloud data centers. *Concurrency and Computation: Practice and Experience*. 2012.
 3. Silva Filho MC, et al. CloudSim Plus: A modern Java 8 framework for modeling and simulation of cloud computing infrastructures. 2017.
 4. Topcuoglu H, Hariri S, Wu MY. Performance-effective and low-complexity task scheduling for heterogeneous computing. *IEEE Transactions on Parallel and Distributed Systems*. 2002;13(3):260–274.
-5. Google Cluster Data. Google Cloud Jobs Dataset (GoCJ). Mendeley Data. https://data.mendeley.com/datasets/b7bp6xhrcd/1
+5. Alsaidy SA, Abbood AD, Sahib MA. Heuristic initialization of PSO task scheduling algorithm in cloud computing. Journal of King Saud University - Computer and Information Sciences. 2022;34:2370–2382.
+6. Google Cluster Data. Google Cloud Jobs Dataset (GoCJ). Mendeley Data. https://data.mendeley.com/datasets/b7bp6xhrcd/1
 
 ---
 
 <p align="center">
-  <b>Kelompok 6 — Strategi Optimasi Komputasi Awan (SOKA)</b><br>
+  <b>Kelompok 6 Strategi Optimasi Komputasi Awan (SOKA)</b><br>
   Departemen Teknologi Informasi, Institut Teknologi Sepuluh Nopember (ITS)<br>
-  Surabaya, Indonesia — 2026
+  Surabaya, Indonesia 2026
 </p>
