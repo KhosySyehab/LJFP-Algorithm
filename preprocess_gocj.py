@@ -28,40 +28,46 @@ N_TASKS = 500
 
 def preprocess_gocj(input_path: str) -> pd.DataFrame:
     """
-    Membaca file GoCJ dan mengekstrak kolom yang relevan.
-    Dataset GoCJ sudah dalam satuan MI, sehingga tidak perlu konversi.
+    Membaca file GoCJ (.txt atau .csv) dan mengekstrak kolom Length_MI.
+    File GoCJ (misal GoCJ_Dataset_500.txt) berisi nilai ukuran job per baris dalam satuan MI.
     """
     print(f"  Membaca dataset GoCJ: {input_path}")
-    df = pd.read_csv(input_path)
-    print(f"  Kolom yang tersedia: {list(df.columns)}")
+    
+    # Coba baca dengan header default
+    try:
+        df = pd.read_csv(input_path, sep=r'[\s,]+', engine='python')
+    except Exception:
+        df = pd.read_csv(input_path)
 
-    # Cari kolom yang relevan (nama kolom bisa bervariasi antar versi dataset)
     length_col = find_column(df, ["job_length", "length", "mi", "cpu_time", "runtime", "run_time"])
-    if length_col is None:
-        raise ValueError(f"Kolom 'length/MI' tidak ditemukan. Kolom tersedia: {list(df.columns)}")
+    
+    if length_col is not None:
+        print(f"  Menggunakan kolom: '{length_col}' sebagai Length_MI")
+        lengths = pd.to_numeric(df[length_col], errors='coerce').dropna()
+    else:
+        # Jika tidak ada header (format standar GoCJ_Dataset_*.txt dari Mendeley)
+        print("  Format terdeteksi: Raw data tanpa header (GoCJ .txt format standar)")
+        df_raw = pd.read_csv(input_path, sep=r'[\s,]+', engine='python', header=None)
+        # Ambil kolom pertama sebagai Length (MI)
+        lengths = pd.to_numeric(df_raw.iloc[:, 0], errors='coerce').dropna()
 
-    print(f"  Menggunakan kolom: '{length_col}' sebagai Length_MI")
+    lengths = lengths[lengths > 0].astype(int)
 
-    # Filter dan bersihkan data
-    df_clean = df[[length_col]].copy()
-    df_clean.columns = ["Length_MI"]
-    df_clean = df_clean.dropna()
-    df_clean = df_clean[df_clean["Length_MI"] > 0]
-    df_clean["Length_MI"] = df_clean["Length_MI"].astype(int)
+    if len(lengths) == 0:
+        raise ValueError(f"Tidak ada data numerik valid ditemukan di {input_path}")
 
-    # Ambil N_TASKS sample acak
-    if len(df_clean) > N_TASKS:
-        df_clean = df_clean.sample(n=N_TASKS, random_state=42)
-    df_clean = df_clean.reset_index(drop=True)
+    # Ambil sample N_TASKS jika lebih banyak
+    if len(lengths) > N_TASKS:
+        lengths = lengths.sample(n=N_TASKS, random_state=42)
+    lengths = lengths.reset_index(drop=True)
 
-    # Tambahkan kolom yang dibutuhkan
     rng = np.random.default_rng(42)
     result = pd.DataFrame({
-        "Task_ID":              range(1, len(df_clean) + 1),
-        "Length_MI":            df_clean["Length_MI"].values,
+        "Task_ID":              range(1, len(lengths) + 1),
+        "Length_MI":            lengths.values,
         "PE_Requirement":       1,
-        "File_Input_Size_KB":   rng.integers(100, 5001, size=len(df_clean)),
-        "File_Output_Size_KB":  rng.integers(50,  2001, size=len(df_clean)),
+        "File_Input_Size_KB":   rng.integers(100, 5001, size=len(lengths)),
+        "File_Output_Size_KB":  rng.integers(50,  2001, size=len(lengths)),
     })
     return result
 
