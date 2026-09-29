@@ -1,0 +1,118 @@
+version: '3.8'
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Docker Compose — LJFP Real-World Experiment (Kelompok 6)
+#
+# Arsitektur:
+#   3 container "VM" dengan resource limit berbeda (heterogenitas):
+#     • container-fastest  : 2.0 CPU, 2 GB RAM  → menerima task terpanjang
+#     • container-medium   : 1.0 CPU, 1 GB RAM  → task menengah
+#     • container-slowest  : 0.5 CPU, 512 MB RAM → task terpendek
+#
+#   Stack monitoring:
+#     • cAdvisor   :8080  → scrape CPU/RAM per container
+#     • Prometheus :9090  → time-series metrics storage
+#     • Grafana    :3000  → dashboard visualisasi
+#
+# Cara menjalankan:
+#   docker compose up -d            # start semua service
+#   python3 ljfp_scheduler.py       # jalankan workload LJFP
+#   # Buka http://localhost:3000 (admin/admin) untuk Grafana dashboard
+#   docker compose down             # stop semua service
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── "VM" containers — heterogeneous resource limits ──────────────────────
+  container-fastest:
+    image: python:3.12-slim
+    container_name: container_fastest
+    cpus: "2.0"
+    mem_limit: "2g"
+    command: ["tail", "-f", "/dev/null"]
+    volumes:
+      - ./workload:/workload
+    networks:
+      - ljfp-net
+    restart: unless-stopped
+
+  container-medium:
+    image: python:3.12-slim
+    container_name: container_medium
+    cpus: "1.0"
+    mem_limit: "1g"
+    command: ["tail", "-f", "/dev/null"]
+    volumes:
+      - ./workload:/workload
+    networks:
+      - ljfp-net
+    restart: unless-stopped
+
+  container-slowest:
+    image: python:3.12-slim
+    container_name: container_slowest
+    cpus: "0.5"
+    mem_limit: "512m"
+    command: ["tail", "-f", "/dev/null"]
+    volumes:
+      - ./workload:/workload
+    networks:
+      - ljfp-net
+    restart: unless-stopped
+
+  # ── Monitoring stack ─────────────────────────────────────────────────────
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    container_name: cadvisor
+    privileged: true
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - ljfp-net
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.51.1
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-lifecycle"
+    networks:
+      - ljfp-net
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana-data:/var/lib/grafana
+    networks:
+      - ljfp-net
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+networks:
+  ljfp-net:
+    driver: bridge
+
+volumes:
+  grafana-data:

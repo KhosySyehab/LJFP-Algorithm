@@ -1,0 +1,7 @@
+Algorithm,Dataset,TotalTasks,Makespan_s,TEC_Joule,TEC_kWh,DegreeOfImbalance,ResourceUtilization_pct,Throughput_task_s,AvgTurnaround_s,AvgWaitingTime_s,LoadBalanceStdDev
+LJFP (Longest Job to Fastest Processor) [Sintetis],Sintetis,500,1229.6795,558559.90,0.155156,0.001298,30.0000,0.406610,555.8453,501.3867,39.2683
+MCT  (Minimum Completion Time) [Sintetis],Sintetis,500,1263.6840,569980.26,0.158328,0.017530,30.0000,0.395669,435.8506,381.4037,43.0906
+FCFS (First Come First Served) [Sintetis],Sintetis,500,2245.6045,913557.44,0.253766,0.938306,28.9596,0.222657,455.5329,399.0680,38.1890
+LJFP (Longest Job to Fastest Processor) [GoCJ],GoCJ,500,1208.6100,548946.26,0.152485,0.001036,30.0000,0.413698,600.9082,546.9529,39.2683
+MCT  (Minimum Completion Time) [GoCJ],GoCJ,500,1210.3920,549456.34,0.152627,0.051680,30.0000,0.413089,463.2929,409.3625,52.5690
+FCFS (First Come First Served) [GoCJ],GoCJ,500,2289.6870,926329.00,0.257314,1.071122,27.4209,0.218370,434.0047,378.0319,38.1890

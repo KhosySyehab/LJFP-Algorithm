@@ -1,0 +1,53 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.kelompok6'
+version = '1.0-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // CloudSim Plus 8.0.0
+    implementation 'org.cloudsimplus:cloudsimplus:8.0.0'
+
+    // SLF4J / Logback for logging
+    implementation 'ch.qos.logback:logback-classic:1.4.14'
+}
+
+application {
+    mainClass = 'com.kelompok6.MainSimulation'
+}
+
+// ── Gradle tasks ─────────────────────────────────────────────────────────────
+tasks.register('runLJFP', JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.kelompok6.MainSimulation'
+    args = ['LJFP']
+}
+
+tasks.register('runMCT', JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.kelompok6.MainSimulation'
+    args = ['MCT']
+}
+
+tasks.register('runFCFS', JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.kelompok6.MainSimulation'
+    args = ['FCFS']
+}
+
+tasks.register('runAll', JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.kelompok6.MainSimulation'
+    args = ['ALL']
+}
