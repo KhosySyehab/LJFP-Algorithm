@@ -1,0 +1,219 @@
+﻿Draft Desain Project - Kelompok 6
+(Mata Kuliah Strategi Optimasi Komputasi Awan)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Ivan Syarifuddin (5027241045)
+Reza Aziz Simatupang (5027241051)
+Nisrina Bilqis (5027241054)
+Ananda Widi Alrafi (5027241067)
+Muhammad Khosyi Syehab (5027241089)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+INSTITUT TEKNOLOGI SEPULUH NOPEMBER
+SURABAYA
+________________
+1. Jenis Task / Workload dan Dataset
+1.1 Karakteristik Utama Workload (Tugas Komputasi)
+Beban kerja yang dipilih adalah Independent Batch Processing dengan karakteristik Highly Heterogeneous CPU-Intensive.
+* Independent: Setiap task berdiri sendiri, tidak saling bergantung (non-preemptive), dan tidak memerlukan komunikasi antar-tugas selama eksekusi.
+* Batch Processing: Seluruh kumpulan task (ratusan instruksi) dikirim ke scheduler secara bersamaan di awal simulasi, bukan masuk satu per satu secara real-time.
+* Highly Heterogeneous: Ini adalah kunci keberhasilan pengujian LJFP. Ukuran tugas harus memiliki disparitas yang sangat ekstrem (misalnya, ada tugas berukuran 1.000 MI dan ada yang berukuran 500.000 MI). LJFP secara otomatis akan menyortir beban terberat ini dan melemparkannya ke prosesor tercepat. Jika beban kerja seragam, keunggulan LJFP tidak akan terlihat.
+* Skenario Real-World: Untuk pengujian nyata nanti, beban kerja ini dapat direpresentasikan dengan skrip stress-test CPU atau pemrosesan skrip machine learning (seperti proses iterasi clustering pada dataset berskala besar) yang berjalan di dalam container Docker. Fluktuasi beban komputasi ini nantinya bisa ditangkap dan divisualisasikan dengan sangat jelas melalui metrik dashboard Grafana dan Prometheus.
+1.2 Struktur Data yang Dibutuhkan
+Setiap baris data (merepresentasikan satu task atau cloudlet) wajib memiliki parameter berikut agar dapat diproses oleh algoritma penjadwalan:
+* Task_ID: Identitas unik tugas (integer).
+* Length (MI): Panjang instruksi dalam satuan Million Instructions. Atribut paling krusial untuk operasi sorting pada LJFP.
+* PE_Requirement: Jumlah Processing Element (core CPU) yang dibutuhkan (diset ke 1 untuk tugas independen).
+* File_Input_Size (KB): Ukuran data mentah sebelum diproses (mempengaruhi waktu transfer jaringan).
+* File_Output_Size (KB): Ukuran data hasil pemrosesan.
+1.3 Rekomendasi Pilihan Dataset
+Pilih salah satu dari dataset berikut, atau gabungkan (hybrid) untuk variasi pengujian:
+No.
+	Dataset
+	Sumber
+	Reason
+	Link Dataset
+	1.
+	HPC2N (High-Performance Computing Center North) Trace
+	Parallel Workloads Archive.
+	Dataset ini merekam aktivitas komputasi saintifik dari superkomputer nyata. Karakteristiknya sangat timpang, di mana banyak job kecil bercampur dengan sedikit job raksasa yang memakan waktu berhari-hari. Ini adalah habitat asli yang menuntut algoritma pengurutan heuristik seperti LJFP.
+	https://www.cs.huji.ac.il/labs/parallel/workload/l_hpc2n/index.html 
+	2.
+	Dataset GoCJ (Google Cloud Jobs)
+	Repositori data analitik Google Cluster.
+	Merepresentasikan beban kerja cloud modern. Dataset ini sangat rapi dan sudah dikalibrasi dalam satuan MI (Million Instructions), sehingga bisa langsung di- import ke dalam CloudSim tanpa konversi matematis yang rumit.
+	https://data.mendeley.com/datasets/b7bp6xhrcd/1
+	3.
+	Dataset Sintetis Terkontrol (Opsional untuk Kalibrasi)
+	Dihasilkan secara acak menggunakan script Python.
+	Terkadang dataset nyata terlalu kotor (noisy). Membangkitkan 500 task menggunakan distribusi statistik yang condong (skewed distribution), seperti Distribusi Weibull, memastikan kamu mendapatkan variasi dari 500 MI hingga 900.000 MI secara presisi untuk menguji limitasi algoritma.
+	-
+	2. Desain Arsitektur Cloud (Simulator & Real-World)
+Desain arsitektur ini sengaja dibuat sangat heterogen (ketimpangan spesifikasi yang tinggi) untuk menguji keampuhan algoritma Longest Job to Fastest Processor (LJFP) dalam mencegah penumpukan tugas berat di node yang lambat, sekaligus membandingkannya dengan Minimum Completion Time (MCT). Arsitektur dibagi menjadi dua lingkungan eksekusi untuk memenuhi syarat tugas:
+A. Fase Simulasi (Environment CloudSim Plus)
+Simulasi ini merepresentasikan satu pusat data publik berskala menengah yang menangani batch processing bervariasi.
+* Datacenter: 1 Unit (Arsitektur x86, OS Linux, Xen Hypervisor).
+* Total Host: 3 Unit (Mewakili 3 generasi hardware yang berbeda).
+* Total VM: 20 Unit (Didistribusikan ke dalam 3 Host).
+* Total Task/Cloudlet: 500 Unit (Heterogen ekstrem).
+Spesifikasi Host (Fisik)
+Kelas Host
+	Jumlah
+	CPU Cores
+	Kapasitas (MIPS/Core)
+	RAM
+	Storage
+	Host-Performance
+	1
+	16
+	4.000
+	32 GB
+	2 TB
+	Host-Standard
+	1
+	8
+	2.000
+	16 GB
+	1 TB
+	Host-Eco
+	1
+	4
+	1.000
+	8 GB
+	500 GB
+	Spesifikasi Virtual Machine (VM)
+Spesifikasi MIPS dibuat sangat timpang agar logika LJFP dapat bekerja maksimal dengan menyortir dan memetakan tugas terberat langsung ke VM-Fastest.
+Tipe VM
+	Jumlah
+	vCPU
+	Kapasitas (MIPS/vCPU)
+	RAM
+	Target Alokasi LJFP
+	VM-Fastest
+	5
+	4
+	4.000
+	8 GB
+	Prioritas tugas terberat (Top 20%)
+	Host-Standard
+	7
+	2
+	2.000
+	4 GB
+	Beban kerja menengah
+	Host-Eco
+	8
+	1
+	1.000
+	2 GB
+	Beban kerja teringan
+	B. Fase Real-World (Hardware & Containerization)
+Untuk implementasi di dunia nyata, pemanfaatan perangkat keras berdaya rendah sebagai home server dengan sistem operasi Linux ringan (seperti XFCE) sangat ideal dan efisien. Alih-alih melakukan full-hardware virtualization yang berat, pemisahan resource dilakukan di level OS menggunakan sistem container.
+* Host Fisik: 1 Unit PC/Laptop yang dikonfigurasi sebagai local server.
+* Hypervisor / Engine: Docker Engine.
+* Desain "VM" (Container Resource Limit):
+Heterogenitas VM di dunia nyata disimulasikan secara presisi menggunakan flag limitasi resource pada Docker saat container dijalankan.
+   * Container-Fastest: Dialokasikan resource tinggi. (Parameter eksekusi: docker run --cpus="2.0" --memory="2g")
+   * Container-Medium: Dialokasikan resource menengah. (Parameter eksekusi: docker run --cpus="1.0" --memory="1g")
+   * Container-Slowest: Dialokasikan resource sangat rendah untuk mengimitasikan node lambat. (Parameter eksekusi: docker run --cpus="0.5" --memory="512m")
+   * Beban Kerja Real-World: Eksekusi skrip stress-test CPU (misalnya menggunakan tool sysbench) atau skrip Python yang melakukan iterasi perhitungan matematis (looping kompleks) di dalam masing-masing container, dengan durasi iterasi mewakili "panjang tugas" (task length).
+   * Sistem Monitoring (Wajib):
+Menyediakan bukti visual bahwa algoritma bekerja menyeimbangkan beban.
+      * Prometheus: Melakukan scraping metrik dari cAdvisor (mengukur utilisasi CPU dan antrean tugas di setiap container Docker secara real-time).
+      * Grafana: Membangun dashboard visual yang bersih dan profesional untuk menampilkan perbandingan utilisasi CPU antara Container-Fastest dan Container-Slowest saat LJFP mengeksekusi beban kerja terberat.
+3. Fungsi Objektif yang Dioptimalkan
+Proyek ini menargetkan optimalisasi penjadwalan komputasi awan yang tidak hanya cepat, tetapi juga seimbang dan hemat daya. Berikut adalah tiga objektif utama yang akan diminimalkan:
+Objektif 1: Minimasi Makespan (Waktu Penyelesaian Total)
+      * Deskripsi: Makespan adalah total durasi yang dibutuhkan sistem sejak tugas pertama mulai dieksekusi hingga tugas terakhir benar-benar selesai diproses oleh Virtual Machine (VM). Ini adalah parameter paling fundamental untuk mengukur seberapa responsif sebuah datacenter melayani antrean beban kerja.
+      * Fungsi Matematis:
+Tujuannya adalah menekan nilai maksimum dari waktu penyelesaian seluruh VM.
+  
+      * Korelasi dengan Algoritma: LJFP secara spesifik dirancang untuk menyerang masalah makespan pada lingkungan heterogen. Dengan mengurutkan tugas berdasar beban terberat dan langsung memasangkannya ke prosesor berkapasitas tertinggi, LJFP mencegah anomali di mana tugas raksasa terjebak di node lambat pada akhir fase penjadwalan.
+Objektif 2: Minimasi Degree of Imbalance (DI)
+         * Deskripsi: Objektif kedua menargetkan keseimbangan pemerataan beban kerja antar server. Tingkat ketimpangan (Degree of Imbalance) harus diminimalkan agar tidak ada kondisi di mana satu node mengalami kelebihan beban (overloaded) sementara node lainnya terlalu cepat selesai dan berakhir menganggur (idle).
+         * Fungsi Matematis:
+  
+
+        Secara konseptual, perhitungan ketimpangan direpresentasikan sebagai jarak antara VM dengan beban terberat dan VM dengan beban teringan:
+  
+        Di mana Tmax adalah waktu eksekusi VM terlama (setara dengan makespan), Tmin adalah waktu eksekusi VM tercepat, dan Tavg adalah rata-rata waktu eksekusi dari seluruh VM.
+         * Korelasi dengan Algoritma & Implementasi: Pada fase real-world, pencapaian objektif ini dapat dibuktikan secara visual. Jika DI berhasil ditekan, fluktuasi grafik utilisasi CPU pada dashboard pemantauan akan terlihat proporsional antar container, membuktikan sistem terdistribusi dengan sehat.
+Objektif 3: Minimasi Konsumsi Energi Total (Total Energy Consumption - TEC)
+         * Deskripsi: Dalam arsitektur cloud modern, kecepatan eksekusi harus selaras dengan efisiensi daya. Mengurangi total konsumsi energi (Energy Consumption) menjadi metrik krusial untuk menekan biaya operasional.
+         * Fungsi Matematis:
+  
+Total energi komputasi dikalkulasikan berdasarkan akumulasi daya yang disedot saat server berstatus aktif memproses tugas dan saat berstatus idle:
+  
+         * Korelasi dengan Algoritma: Karena LJFP mendelegasikan tugas berat ke mesin spesifikasi tinggi yang mampu memprosesnya dengan sangat cepat, hal ini menekan total waktu aktif operasional sistem (Total Execution Time). Semakin cepat mesin dapat kembali ke status idle, semakin kecil akumulasi energi yang terbuang.
+4. Metrik Optimasi dan Batasan Cloud
+4.1 Metrik Optimasi yang Diukur
+Untuk membandingkan performa penjadwalan antara algoritma LJFP dan MCT, evaluasi akan didasarkan pada perhitungan lima metrik numerik berikut:
+Metrik
+	Definisi dan Formula
+	Target Optimasi
+	Makespan
+	Waktu yang dibutuhkan sejak tugas pertama dikirim hingga tugas terakhir selesai dieksekusi di seluruh datacenter. 
+
+
+Formula :
+Makespan = max(CompletionTime) untuk semua task.
+	Minimasi
+	Total Energy Consmption
+	Akumulasi pemakaian energi dari seluruh node (VM) selama proses penjadwalan berjalan, dihitung dari daya saat active maupun idle.
+	Minimasi
+	Degree of Imbalance (DI)
+	Indikator pemerataan beban kerja. Nilai DI yang mendekati nol menunjukkan bahwa beban terdistribusi secara sempurna tanpa ada node yang mengalami bottleneck ekstrem.
+	Minimasi
+	Resource Utilization (RU)
+	Persentase waktu VM benar-benar sibuk memproses data dibandingkan total waktu operasinya.
+
+
+Formula : 
+RU =   
+	Maksimasi
+	Throughput
+	Rasio penyelesaian tugas komputasi terhadap waktu penyelesaian total.
+
+
+Formula : 
+Throughput =   
+	Maksimasi
+	4.2 Batasan Cloud (System Constraints)
+Model simulasi dan eksperimen real-world ini berjalan di bawah aturan atau batasan sistem yang ketat agar pengujian valid dan terisolasi dari anomali jaringan.
+            1. Resource Capacity Constraint: Total kebutuhan sumber daya (CPU dan RAM) dari sebuah tugas tidak boleh melebihi kapasitas maksimum Virtual Machine (VM) tempat tugas tersebut dijadwalkan.
+  
+
+            2. Non-preemptive Execution: Sistem tidak mengizinkan interupsi. Begitu sebuah tugas mulai dieksekusi di dalam VM atau container Docker, tugas tersebut akan mengunci resource dan berjalan hingga selesai 100% tanpa bisa dijeda, dipindahkan (migrated), atau dibatalkan di tengah jalan.
+            3. Task Independence (No Precedence Constraint): Semua tugas yang masuk ke dalam antrean bersifat mandiri (independent task). Tidak ada tugas yang harus menunggu hasil keluaran (output) dari eksekusi tugas lain, sehingga murni menguji efisiensi penyortiran algoritma tanpa terhalang rantai ketergantungan.
+            4. Strict Heterogeneity Constraint: Spesifikasi kapasitas komputasi (MIPS) pada Host dan VM sengaja dibuat bervariasi (timpang). Batasan ini wajib ada karena jika semua server memiliki kecepatan yang seragam, strategi algoritma LJFP (yang memasangkan tugas terberat ke prosesor tercepat) menjadi tidak relevan dan tidak dapat diukur efektivitasnya.
+            5. Exclusive Task Assignment: Setiap satu tugas/ cloudlet hanya boleh dan pasti dipetakan secara eksklusif ke satu VM tunggal yang berstatus valid.
