@@ -7,7 +7,7 @@
   <img src="https://img.shields.io/badge/Simulator-CloudSim_Plus_8.0.0-007ACC?style=flat-square&logo=java&logoColor=white">
   <img src="https://img.shields.io/badge/Algorithm-LJFP_Heuristic-E53935?style=flat-square">
   <img src="https://img.shields.io/badge/Baseline-MCT_%26_FCFS-FFA000?style=flat-square">
-  <img src="https://img.shields.io/badge/Dataset-Sintetis_Weibull_%26_Log--Normal-9C27B0?style=flat-square">
+  <img src="https://img.shields.io/badge/Dataset-Sintetis_Weibull_%26_GoCJ_Mendeley-9C27B0?style=flat-square">
   <img src="https://img.shields.io/badge/Language-Java_21-ED8B00?style=flat-square&logo=openjdk&logoColor=white">
   <img src="https://img.shields.io/badge/Real--World-Docker_%2B_Prometheus_%2B_Grafana-2496ED?style=flat-square&logo=docker&logoColor=white">
 </p>
@@ -34,6 +34,9 @@
 - [4. Dataset Uji Coba](#4-dataset-uji-coba)
 - [5. Hasil Simulasi](#5-hasil-simulasi)
 - [6. Implementasi Real-World](#6-implementasi-real-world)
+  - [6.1 Arsitektur Docker](#61-arsitektur-docker)
+  - [6.2 Cara Menjalankan Real-World](#62-cara-menjalankan-real-world)
+  - [6.3 Hasil Ujicoba Real-World](#63-hasil-ujicoba-real-world)
 - [7. Panduan Menjalankan](#7-panduan-menjalankan)
 - [8. Struktur Direktori](#8-struktur-direktori)
 - [9. Referensi](#9-referensi)
@@ -264,7 +267,7 @@ flowchart LR
 
 ### 6.2 Cara Menjalankan Real-World
 
-**Prasyarat**: Docker Desktop aktif + WSL Integration diaktifkan.
+**Prasyarat**: Docker Engine aktif + Python 3 tersedia.
 
 ```bash
 # 1. Masuk ke folder realworld
@@ -284,11 +287,51 @@ python3 ljfp_scheduler.py
 
 # 6. Buka Grafana dashboard
 # http://localhost:3000  (login: admin / admin)
-# Pantau CPU utilization per container secara real-time
+# → Dashboard: "LJFP Real-World Cluster Monitoring"
 
 # 7. Matikan stack setelah selesai
 docker compose down
 ```
+
+### 6.3 Hasil Ujicoba Real-World
+
+**Environment**: Docker Engine pada Ubuntu Linux — 3 container heterogen dengan pembatasan CPU & RAM eksplisit.
+
+| Parameter Environment | Container-Fastest | Container-Medium | Container-Slowest |
+|:---|:---:|:---:|:---:|
+| **CPU Limit** | 2.0 vCPU | 1.0 vCPU | 0.5 vCPU |
+| **RAM Limit** | 2 GB | 1 GB | 512 MB |
+| **Mapping ke Simulasi** | VM-Fastest (4000 MIPS) | VM-Standard (2000 MIPS) | VM-Eco (1000 MIPS) |
+| **Tugas yang Diterima** | Task terpanjang (Top MI) | Task menengah | Task teringan |
+
+**Hasil Eksekusi LJFP Real-World** (30 task sampel, dataset sintetis Weibull):
+
+| Metrik | Nilai | Keterangan |
+|:---|:---:|:---|
+| **Total Task Dieksekusi** | 30 task | Seluruh task berhasil tanpa kegagalan |
+| **① Makespan** | **4.7843 s** | Waktu task terakhir selesai di container_slowest |
+| **③ Degree of Imbalance (DI)** | **0.004874** | Mendekati 0 — beban terdistribusi hampir sempurna |
+| **⑤ Throughput** | **6.26 task/s** | Rata-rata task selesai per detik |
+| **Total Waktu CPU container_fastest** | 5.3016 s | Menerima 18 task terberat |
+| **Total Waktu CPU container_medium** | 5.2949 s | Menerima 8 task menengah |
+| **Total Waktu CPU container_slowest** | 5.2758 s | Menerima 4 task teringan |
+
+**Sampel Assignment LJFP (Top 10 task):**
+
+| Task ID | Length (MI) | Container Terpilih | Alasan LJFP |
+|:---:|---:|:---:|:---|
+| 29 | 378.524 | container_fastest | Job terpanjang → prosesor tercepat |
+| 4 | 333.475 | container_medium | Job terberat ke-2 → ECT terkecil |
+| 25 | 299.308 | container_fastest | Greedy min-ECT |
+| 30 | 285.327 | container_fastest | Greedy min-ECT |
+| 3 | 277.199 | container_slowest | ECT terkecil setelah fastest & medium penuh |
+| 6 | 258.964 | container_medium | Greedy min-ECT |
+| 1 | 216.891 | container_fastest | Greedy min-ECT |
+| 5 | 200.407 | container_fastest | Greedy min-ECT |
+| 10 | 190.425 | container_medium | Greedy min-ECT |
+| 28 | 185.046 | container_fastest | Greedy min-ECT |
+
+> **Validasi Kunci**: Selisih total waktu komputasi antar ketiga container hanya **~0.026 detik** (5.3016 vs 5.2949 vs 5.2758), membuktikan algoritma LJFP berhasil mencapai keseimbangan beban mendekati sempurna (DI ≈ 0.005) meskipun container memiliki kapasitas CPU yang berbeda 4x lipat.
 
 ---
 
@@ -315,8 +358,9 @@ pip3 install numpy pandas --break-system-packages
 # 3. Generate dataset sintetis (Skenario 1)
 python3 generate_dataset.py
 
-# 4. Generate dataset log-normal (Skenario 2)
-python3 preprocess_gocj.py
+# 4. Generate dataset GoCJ (Skenario 2) dari dataset Mendeley
+# (pastikan GoCJ_Dataset_500.txt sudah ada di folder dataset/)
+python3 preprocess_gocj.py --input dataset/GoCJ_Dataset_500.txt
 
 # 5. Jalankan semua skenario simulasi
 ./gradlew runAll
@@ -330,9 +374,10 @@ python3 preprocess_gocj.py
 ### Output
 
 Hasil tersimpan di folder `results/`:
-- `results/synthetic_results.csv` Skenario 1 (Weibull)
-- `results/gocj_results.csv` Skenario 2 (Log-Normal)
-- `results/all_results.csv` Gabungan semua hasil
+- `results/synthetic_results.csv` — Skenario 1 (Weibull Sintetis)
+- `results/gocj_results.csv` — Skenario 2 (GoCJ Real Mendeley)
+- `results/all_results.csv` — Gabungan semua hasil
+- `realworld/results_realworld.csv` — Hasil eksekusi real-world Docker
 
 ---
 
@@ -375,8 +420,12 @@ LJFP-Algorithm/
     │   └── prometheus.yml             ← Konfigurasi scraping Prometheus
     ├── grafana/
     │   └── provisioning/
-    │       └── datasources/
-    │           └── prometheus.yml     ← Auto-provisioning datasource Grafana
+    │       ├── datasources/
+    │       │   └── prometheus.yml     ← Auto-provisioning datasource Prometheus
+    │       └── dashboards/
+    │           ├── dashboards.yml     ← Dashboard provider config
+    │           └── ljfp_dashboard.json ← Dashboard LJFP Cluster Monitoring
+    ├── results_realworld.csv          ← Hasil eksekusi real-world LJFP
     └── workload/
         └── dataset_500tasks.csv       ← Dataset yang digunakan di real-world
 ```
