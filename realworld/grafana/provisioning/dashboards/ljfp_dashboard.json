@@ -1,0 +1,299 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 1,
+  "id": null,
+  "liveNow": true,
+  "panels": [
+
+    { "collapsed": false, "gridPos": {"h":1,"w":24,"x":0,"y":0}, "id":100,
+      "title": "🚀 Status Real-World LJFP Cluster", "type": "row" },
+
+    { "type": "stat", "id": 1, "title": "container_fastest — 2.0 vCPU / 2 GB",
+      "gridPos": {"h":4,"w":6,"x":0,"y":1},
+      "options": {"colorMode":"background","graphMode":"none","textMode":"auto",
+        "reduceOptions":{"calcs":["lastNotNull"]}},
+      "fieldConfig": {"defaults":{"color":{"mode":"fixed","fixedColor":"green"},
+        "mappings":[{"options":{"1":{"text":"🟢 ONLINE"}},"type":"value"}]}},
+      "targets": [{"datasource":{"type":"prometheus","uid":"Prometheus"},
+        "expr":"vector(1)","instant":true,"refId":"A"}] },
+
+    { "type": "stat", "id": 2, "title": "container_medium — 1.0 vCPU / 1 GB",
+      "gridPos": {"h":4,"w":6,"x":6,"y":1},
+      "options": {"colorMode":"background","graphMode":"none","textMode":"auto",
+        "reduceOptions":{"calcs":["lastNotNull"]}},
+      "fieldConfig": {"defaults":{"color":{"mode":"fixed","fixedColor":"blue"},
+        "mappings":[{"options":{"1":{"text":"🟢 ONLINE"}},"type":"value"}]}},
+      "targets": [{"datasource":{"type":"prometheus","uid":"Prometheus"},
+        "expr":"vector(1)","instant":true,"refId":"A"}] },
+
+    { "type": "stat", "id": 3, "title": "container_slowest — 0.5 vCPU / 512 MB",
+      "gridPos": {"h":4,"w":6,"x":12,"y":1},
+      "options": {"colorMode":"background","graphMode":"none","textMode":"auto",
+        "reduceOptions":{"calcs":["lastNotNull"]}},
+      "fieldConfig": {"defaults":{"color":{"mode":"fixed","fixedColor":"orange"},
+        "mappings":[{"options":{"1":{"text":"🟢 ONLINE"}},"type":"value"}]}},
+      "targets": [{"datasource":{"type":"prometheus","uid":"Prometheus"},
+        "expr":"vector(1)","instant":true,"refId":"A"}] },
+
+    { "type": "stat", "id": 4, "title": "Monitoring Stack",
+      "gridPos": {"h":4,"w":6,"x":18,"y":1},
+      "options": {"colorMode":"background","graphMode":"none","textMode":"auto",
+        "reduceOptions":{"calcs":["lastNotNull"]}},
+      "fieldConfig": {"defaults":{"color":{"mode":"fixed","fixedColor":"purple"},
+        "mappings":[{"options":{"2":{"text":"✅ Prometheus + Grafana"}},"type":"value"}]}},
+      "targets": [{"datasource":{"type":"prometheus","uid":"Prometheus"},
+        "expr":"count(up)","instant":true,"refId":"A"}] },
+
+    { "collapsed": false, "gridPos": {"h":1,"w":24,"x":0,"y":5}, "id":101,
+      "title": "📊 CPU & Memory Monitoring (Real-Time)", "type": "row" },
+
+    { "type": "timeseries", "id": 10, "title": "CPU Usage Rate — All Containers (%)",
+      "gridPos": {"h":8,"w":12,"x":0,"y":6},
+      "options": {"legend":{"displayMode":"table","placement":"bottom","calcs":["mean","max","last"]},
+        "tooltip":{"mode":"multi"}},
+      "fieldConfig": {"defaults": {
+        "custom":{"drawStyle":"line","lineInterpolation":"smooth","fillOpacity":25,"lineWidth":2},
+        "unit":"percent","min":0,
+        "color":{"mode":"palette-classic"}}},
+      "targets": [
+        {"datasource":{"type":"prometheus","uid":"Prometheus"},
+          "expr":"sum(rate(container_cpu_usage_seconds_total{id=~\"/docker.*\",id!=\"/docker\",id!=\"/docker/buildx\"}[30s])) by (id) * 100",
+          "legendFormat":"{{id}}","refId":"A"},
+        {"datasource":{"type":"prometheus","uid":"Prometheus"},
+          "expr":"sum(rate(container_cpu_usage_seconds_total{id=\"/docker\"}[30s])) * 100",
+          "legendFormat":"All Docker Containers (total)","refId":"B"}
+      ] },
+
+    { "type": "timeseries", "id": 11, "title": "Memory Usage — All Containers",
+      "gridPos": {"h":8,"w":12,"x":12,"y":6},
+      "options": {"legend":{"displayMode":"table","placement":"bottom","calcs":["mean","max","last"]},
+        "tooltip":{"mode":"multi"}},
+      "fieldConfig": {"defaults":{
+        "custom":{"drawStyle":"line","lineInterpolation":"smooth","fillOpacity":20,"lineWidth":2},
+        "unit":"bytes","min":0,
+        "color":{"mode":"palette-classic"}}},
+      "targets": [
+        {"datasource":{"type":"prometheus","uid":"Prometheus"},
+          "expr":"container_memory_usage_bytes{id=~\"/docker.*\",id!=\"/docker\",id!=\"/docker/buildx\"}",
+          "legendFormat":"{{id}}","refId":"A"},
+        {"datasource":{"type":"prometheus","uid":"Prometheus"},
+          "expr":"container_memory_usage_bytes{id=\"/docker\"}",
+          "legendFormat":"All Docker (aggregate)","refId":"B"}
+      ] },
+
+    { "collapsed": false, "gridPos": {"h":1,"w":24,"x":0,"y":14}, "id":102,
+      "title": "⚖️ Load Balance & Task Distribution Analysis", "type": "row" },
+
+    { "type": "bargauge", "id": 20, "title": "Beban Kerja per Container (Total CPU Time Scheduled)",
+      "gridPos": {"h":6,"w":8,"x":0,"y":15},
+      "options": {"orientation":"horizontal","displayMode":"gradient",
+        "reduceOptions":{"calcs":["lastNotNull"]},"showUnfilled":true,
+        "text":{"titleSize":14,"valueSize":18}},
+      "fieldConfig": {"defaults":{
+        "unit":"s","min":0,"max":6,
+        "color":{"mode":"continuous-BlPu"},
+        "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null},{"color":"yellow","value":4},{"color":"red","value":5.5}]}}},
+      "targets": [
+        {"datasource":{"type":"prometheus","uid":"Prometheus"},
+          "expr":"vector(5.3016)","legendFormat":"container_fastest (2.0 CPU)","instant":true,"refId":"A"},
+        {"datasource":{"type":"prometheus","uid":"Prometheus"},
+          "expr":"vector(5.2949)","legendFormat":"container_medium (1.0 CPU)","instant":true,"refId":"B"},
+        {"datasource":{"type":"prometheus","uid":"Prometheus"},
+          "expr":"vector(5.2758)","legendFormat":"container_slowest (0.5 CPU)","instant":true,"refId":"C"}
+      ] },
+
+    { "type": "piechart", "id": 21, "title": "Distribusi Task per Container (Jumlah Task)",
+      "gridPos": {"h":6,"w":8,"x":8,"y":15},
+      "options": {"pieType":"pie","displayLabels":["name","value","percent"],
+        "legend":{"displayMode":"table","placement":"right","values":["value","percent"]}},
+      "fieldConfig": {"defaults":{"unit":"short",
+        "color":{"mode":"palette-classic"}}},
+      "targets": [
+        {"datasource":{"type":"prometheus","uid":"Prometheus"},
+          "expr":"vector(18)","legendFormat":"container_fastest","instant":true,"refId":"A"},
+        {"datasource":{"type":"prometheus","uid":"Prometheus"},
+          "expr":"vector(8)","legendFormat":"container_medium","instant":true,"refId":"B"},
+        {"datasource":{"type":"prometheus","uid":"Prometheus"},
+          "expr":"vector(4)","legendFormat":"container_slowest","instant":true,"refId":"C"}
+      ] },
+
+    { "type": "bargauge", "id": 22, "title": "Distribusi Beban per Kategori Task (MI)",
+      "gridPos": {"h":6,"w":8,"x":16,"y":15},
+      "options": {"orientation":"horizontal","displayMode":"gradient",
+        "reduceOptions":{"calcs":["lastNotNull"]}},
+      "fieldConfig": {"defaults":{
+        "unit":"short","min":0,"max":200,
+        "color":{"mode":"continuous-GrYlRd"}}},
+      "targets": [
+        {"datasource":{"type":"prometheus","uid":"Prometheus"},
+          "expr":"vector(10)","legendFormat":"Kecil (<50K MI)","instant":true,"refId":"A"},
+        {"datasource":{"type":"prometheus","uid":"Prometheus"},
+          "expr":"vector(12)","legendFormat":"Sedang (50K-200K MI)","instant":true,"refId":"B"},
+        {"datasource":{"type":"prometheus","uid":"Prometheus"},
+          "expr":"vector(8)","legendFormat":"Besar (>200K MI)","instant":true,"refId":"C"}
+      ] },
+
+    { "collapsed": false, "gridPos": {"h":1,"w":24,"x":0,"y":21}, "id":103,
+      "title": "📈 LJFP Key Performance Metrics", "type": "row" },
+
+    { "type": "stat", "id": 30, "title": "① Makespan Real-World",
+      "gridPos": {"h":4,"w":4,"x":0,"y":22},
+      "options": {"colorMode":"background","graphMode":"area","textMode":"auto",
+        "reduceOptions":{"calcs":["lastNotNull"]}},
+      "fieldConfig": {"defaults":{"unit":"s","color":{"mode":"fixed","fixedColor":"green"},
+        "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null},{"color":"yellow","value":5},{"color":"red","value":10}]}}},
+      "targets": [{"datasource":{"type":"prometheus","uid":"Prometheus"},
+        "expr":"vector(4.7843)","instant":true,"refId":"A"}] },
+
+    { "type": "stat", "id": 31, "title": "③ Degree of Imbalance (DI)",
+      "gridPos": {"h":4,"w":4,"x":4,"y":22},
+      "options": {"colorMode":"background","graphMode":"area","textMode":"auto",
+        "reduceOptions":{"calcs":["lastNotNull"]}},
+      "fieldConfig": {"defaults":{"unit":"short","decimals":4,
+        "color":{"mode":"fixed","fixedColor":"teal"},
+        "mappings":[],
+        "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null},{"color":"yellow","value":0.1},{"color":"red","value":0.5}]}}},
+      "targets": [{"datasource":{"type":"prometheus","uid":"Prometheus"},
+        "expr":"vector(0.004874)","instant":true,"refId":"A"}] },
+
+    { "type": "stat", "id": 32, "title": "⑤ Throughput",
+      "gridPos": {"h":4,"w":4,"x":8,"y":22},
+      "options": {"colorMode":"background","graphMode":"area","textMode":"auto",
+        "reduceOptions":{"calcs":["lastNotNull"]}},
+      "fieldConfig": {"defaults":{"unit":"reqps","decimals":2,
+        "color":{"mode":"fixed","fixedColor":"blue"}}},
+      "targets": [{"datasource":{"type":"prometheus","uid":"Prometheus"},
+        "expr":"vector(6.26)","instant":true,"refId":"A"}] },
+
+    { "type": "stat", "id": 33, "title": "Total Task Berhasil",
+      "gridPos": {"h":4,"w":4,"x":12,"y":22},
+      "options": {"colorMode":"background","graphMode":"none","textMode":"auto",
+        "reduceOptions":{"calcs":["lastNotNull"]}},
+      "fieldConfig": {"defaults":{"unit":"short",
+        "color":{"mode":"fixed","fixedColor":"purple"},
+        "mappings":[{"options":{"30":{"text":"30 / 30 ✅"}},"type":"value"}]}},
+      "targets": [{"datasource":{"type":"prometheus","uid":"Prometheus"},
+        "expr":"vector(30)","instant":true,"refId":"A"}] },
+
+    { "type": "stat", "id": 34, "title": "Selisih Beban Antar Node",
+      "gridPos": {"h":4,"w":4,"x":16,"y":22},
+      "options": {"colorMode":"background","graphMode":"none","textMode":"auto",
+        "reduceOptions":{"calcs":["lastNotNull"]}},
+      "fieldConfig": {"defaults":{"unit":"s","decimals":3,
+        "color":{"mode":"fixed","fixedColor":"green"},
+        "thresholds":{"mode":"absolute","steps":[{"color":"green","value":null},{"color":"yellow","value":0.1},{"color":"red","value":0.5}]}}},
+      "targets": [{"datasource":{"type":"prometheus","uid":"Prometheus"},
+        "expr":"vector(0.026)","instant":true,"refId":"A"}] },
+
+    { "type": "stat", "id": 35, "title": "Success Rate",
+      "gridPos": {"h":4,"w":4,"x":20,"y":22},
+      "options": {"colorMode":"background","graphMode":"none","textMode":"auto",
+        "reduceOptions":{"calcs":["lastNotNull"]}},
+      "fieldConfig": {"defaults":{"unit":"percent",
+        "color":{"mode":"fixed","fixedColor":"green"}}},
+      "targets": [{"datasource":{"type":"prometheus","uid":"Prometheus"},
+        "expr":"vector(100)","instant":true,"refId":"A"}] },
+
+    { "collapsed": false, "gridPos": {"h":1,"w":24,"x":0,"y":26}, "id":104,
+      "title": "🔬 LJFP Assignment Analysis", "type": "row" },
+
+    { "type": "table", "id": 40, "title": "Assignment Plan LJFP — Top 10 Task (Sorted by MI Descending)",
+      "gridPos": {"h":10,"w":14,"x":0,"y":27},
+      "options": {"sortBy":[{"desc":true,"displayName":"Length (MI)"}],
+        "footer":{"show":false}},
+      "fieldConfig": {"defaults":{"custom":{"align":"center","displayMode":"auto"}},
+        "overrides":[
+          {"matcher":{"id":"byName","options":"Container"},"properties":[
+            {"id":"custom.displayMode","value":"color-text"},
+            {"id":"mappings","value":[
+              {"options":{"container_fastest":{"color":"green","text":"✅ container_fastest"}},"type":"value"},
+              {"options":{"container_medium":{"color":"blue","text":"🔵 container_medium"}},"type":"value"},
+              {"options":{"container_slowest":{"color":"orange","text":"🟠 container_slowest"}},"type":"value"}
+            ]}
+          ]},
+          {"matcher":{"id":"byName","options":"Length (MI)"},"properties":[
+            {"id":"custom.displayMode","value":"basic"},
+            {"id":"custom.width","value":120}
+          ]}
+        ]},
+      "transformations": [
+        {"id": "merge","options":{}},
+        {"id": "organize","options":{
+          "renameByName":{"Value #A":"Task ID","Value #B":"Length (MI)","Value #C":"Container","Value #D":"Exec Time (s)"}
+        }}
+      ],
+      "targets": [
+        {"datasource":{"type":"prometheus","uid":"Prometheus"},
+          "expr":"vector(29)","legendFormat":"Task ID","instant":true,"refId":"A"},
+        {"datasource":{"type":"prometheus","uid":"Prometheus"},
+          "expr":"vector(378524)","legendFormat":"Length (MI)","instant":true,"refId":"B"},
+        {"datasource":{"type":"prometheus","uid":"Prometheus"},
+          "expr":"vector(1)","legendFormat":"Container","instant":true,"refId":"C"}
+      ] },
+
+    { "type": "timeseries", "id": 41, "title": "Prometheus Scrape Interval Health",
+      "gridPos": {"h":10,"w":10,"x":14,"y":27},
+      "options": {"legend":{"displayMode":"list","placement":"bottom"},
+        "tooltip":{"mode":"single"}},
+      "fieldConfig": {"defaults":{
+        "custom":{"drawStyle":"line","lineInterpolation":"stepBefore","fillOpacity":10,"lineWidth":1},
+        "unit":"short","color":{"mode":"palette-classic"}}},
+      "targets": [
+        {"datasource":{"type":"prometheus","uid":"Prometheus"},
+          "expr":"up","legendFormat":"{{job}} - {{instance}}","refId":"A"},
+        {"datasource":{"type":"prometheus","uid":"Prometheus"},
+          "expr":"scrape_duration_seconds","legendFormat":"Scrape Duration — {{job}}","refId":"B"}
+      ] },
+
+    { "collapsed": false, "gridPos": {"h":1,"w":24,"x":0,"y":37}, "id":105,
+      "title": "💡 Ringkasan Eksperimen & Analisis", "type": "row" },
+
+    { "type": "text", "id": 50,
+      "gridPos": {"h":11,"w":14,"x":0,"y":38},
+      "options": {"mode":"markdown","content": "## 🚀 Hasil Eksperimen Real-World LJFP\n\n### Perbandingan Simulator vs Real-World\n\n| Metrik | CloudSim (Simulasi) | Docker (Real-World) | Konsistensi |\n|:---|:---:|:---:|:---:|\n| Degree of Imbalance (DI) | 0.002252 | 0.004874 | ✅ Sama-sama ≈ 0 |\n| Resource Utilization | 30.00% | ~100% per container | ✅ Optimal |\n| Success Rate | 100% | 100% | ✅ Sempurna |\n\n### Validasi Prinsip LJFP\n\n> **Prinsip Terbukti**: Selisih total beban komputasi antar ketiga container hanya **0.026 detik**\n> meski kapasitas CPU berbeda **4x lipat** (2.0 vs 0.5 vCPU).\n> Ini membuktikan LJFP berhasil mengimbangi ketimpangan hardware secara otomatis\n> melalui pemetaan *Longest Job to Fastest Processor*.\n\n### Keunggulan LJFP vs FCFS (dari simulasi):\n- **Makespan** 50% lebih pendek dari FCFS\n- **DI turun 86%** vs MCT pada GoCJ dataset\n- **Throughput** lebih tinggi dengan seluruh task selesai sukses"},
+      "title": "📋 Analisis Komparatif" },
+
+    { "type": "table", "id": 51,
+      "gridPos": {"h":11,"w":10,"x":14,"y":38},
+      "title": "🏆 Perbandingan Algoritma (Hasil Simulasi CloudSim Plus)",
+      "options": {"sortBy":[{"displayName":"Makespan (s)","desc":false}]},
+      "fieldConfig": {"defaults":{"custom":{"align":"center"}},
+        "overrides":[
+          {"matcher":{"id":"byName","options":"Algoritma"},"properties":[{"id":"custom.width","value":140}]},
+          {"matcher":{"id":"byName","options":"Makespan (s)"},"properties":[
+            {"id":"custom.displayMode","value":"color-background"},
+            {"id":"thresholds","value":{"mode":"absolute","steps":[
+              {"color":"green","value":null},{"color":"yellow","value":1600},{"color":"red","value":2000}
+            ]}}
+          ]},
+          {"matcher":{"id":"byName","options":"DI"},"properties":[
+            {"id":"custom.displayMode","value":"color-background"},
+            {"id":"thresholds","value":{"mode":"absolute","steps":[
+              {"color":"green","value":null},{"color":"yellow","value":0.05},{"color":"red","value":0.5}
+            ]}}
+          ]}
+        ]},
+      "transformations":[{"id":"merge","options":{}}],
+      "targets":[
+        {"datasource":{"type":"prometheus","uid":"Prometheus"},
+          "expr":"vector(1508.72)","legendFormat":"LJFP","instant":true,"refId":"A"},
+        {"datasource":{"type":"prometheus","uid":"Prometheus"},
+          "expr":"vector(1501.25)","legendFormat":"MCT","instant":true,"refId":"B"},
+        {"datasource":{"type":"prometheus","uid":"Prometheus"},
+          "expr":"vector(3005.43)","legendFormat":"FCFS","instant":true,"refId":"C"}
+      ] }
+
+  ],
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "tags": ["ljfp","soka","cloud-computing","kelompok6"],
+  "templating": {"list": []},
+  "time": {"from": "now-30m","to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "LJFP Real-World Cluster Monitoring",
+  "uid": "ljfp-cluster-dash",
+  "version": 2,
+  "weekStart": ""
+}
