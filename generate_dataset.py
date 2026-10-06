@@ -68,15 +68,20 @@ def print_stats(df: pd.DataFrame):
 
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Generate dataset sintetis Weibull")
+    parser.add_argument("--n", type=int, default=500, help="Jumlah task yang dibangkitkan")
+    args = parser.parse_args()
+
     os.makedirs("dataset", exist_ok=True)
-    output_path = "dataset/synthetic_500tasks.csv"
+    output_path = f"dataset/synthetic_{args.n}tasks.csv"
 
     print("=" * 60)
     print("  Dataset Generator — Kelompok 6 (LJFP)")
-    print("  Distribusi: Weibull shape=0.8 (highly skewed)")
+    print(f"  Distribusi: Weibull shape=0.8 (highly skewed) | N={args.n}")
     print("=" * 60)
 
-    df = generate_synthetic(n=500, seed=42)
+    df = generate_synthetic(n=args.n, seed=42)
     df.to_csv(output_path, index=False)
 
     print_stats(df)

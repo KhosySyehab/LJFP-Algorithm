@@ -56,9 +56,7 @@ def preprocess_gocj(input_path: str) -> pd.DataFrame:
     if len(lengths) == 0:
         raise ValueError(f"Tidak ada data numerik valid ditemukan di {input_path}")
 
-    # Ambil sample N_TASKS jika lebih banyak
-    if len(lengths) > N_TASKS:
-        lengths = lengths.sample(n=N_TASKS, random_state=42)
+# Gunakan SELURUH task dari file input (tidak di-cap ke N_TASKS)
     lengths = lengths.reset_index(drop=True)
 
     rng = np.random.default_rng(42)
@@ -146,9 +144,10 @@ def main():
         df = generate_lognormal_alternative(N_TASKS)
         label = "Log-Normal Alternative (GoCJ proxy)"
 
+    output_path = f"dataset/gocj_{len(df)}tasks.csv"
     print_stats(df, label)
-    df.to_csv(OUTPUT_PATH, index=False)
-    print(f"\n  ✓ Dataset berhasil disimpan ke: {OUTPUT_PATH}")
+    df.to_csv(output_path, index=False)
+    print(f"\n  ✓ Dataset berhasil disimpan ke: {output_path}")
     print(f"  ✓ Preview 5 baris pertama:")
     print(df.head().to_string(index=False))
 

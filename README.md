@@ -20,7 +20,7 @@
 | :---: | :--- | :---: | :--- |
 | 1 | Ivan Syarifuddin | 5027241045 | - |
 | 2 | Reza Aziz Simatupang | 5027241051 | - |
-| 3 | Nisrina Bilqis | 5027241054 | - |
+| 3 | Nisrina Bilqis | 5027241054 | Revisi dataset 600-1000 |
 | 4 | Ananda Widi Alrafi | 5027241067 | - |
 | 5 | Muhammad Khosyi Syehab | 5027241089 | Architecture Design & Algorithm Simulation |
 
@@ -200,43 +200,58 @@ Distribusi Weibull dengan shape < 1 menghasilkan banyak task kecil dan sedikit t
 
 ---
 
-## 5. Hasil Simulasi
+## 5. Hasil Simulasi (Skala 500–1000 Task)
 
-> **Semua 500 task berhasil diselesaikan tanpa kegagalan alokasi pada kedua skenario.**
+> **Revisi dari uji coba sebelumnya**: dulu program hanya diuji di 500 task tetap (hardcoded). Sekarang kedua skenario (Sintetis Weibull dan GoCJ) diuji di **6 ukuran dataset berbeda** — 500, 600, 700, 800, 900, 1000 task — dikali 3 algoritma (LJFP, MCT, FCFS) = **36 eksperimen total**.
 
-### 5.1 Skenario 1 Dataset Sintetis Weibull
+### 5.1 Skenario 1 — Dataset Sintetis (Weibull): LJFP vs MCT
 
-| Metrik | LJFP (Diusulkan) | MCT (Baseline 1) | FCFS (Baseline 2) | LJFP vs MCT |
-|:---|:---:|:---:|:---:|:---:|
-| **① Makespan (s)** | **1.229,68** | 1.263,68 | 2.245,60 | **-2,69%** |
-| **② TEC (Joule)** | **558.559,9** | 569.980,3 | 913.557,4 | **-2,00%** |
-| **② TEC (kWh)** | **0,155156** | 0,158328 | 0,253766 | **-2,00%** |
-| **③ Degree of Imbalance** | **0,001298** | 0,017530 | 0,938306 | **-92,60%** |
-| **④ Resource Utilization (%)** | **30,00** | 30,00 | 28,96 | 0,00% |
-| **⑤ Throughput (task/s)** | **0,406610** | 0,395669 | 0,222657 | **+2,77%** |
+| N Task | Makespan LJFP (s) | Makespan MCT (s) | Δ% | TEC LJFP (kWh) | TEC MCT (kWh) | Δ% | DI LJFP | DI MCT | Δ% |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 500  | 1.229,68 | 1.263,68 | -2,69% | 0,1552 | 0,1583 | -2,00% | 0,0013 | 0,0175 | -92,60% |
+| 600  | 1.487,65 | 1.509,69 | -1,46% | 0,1879 | 0,1900 | -1,09% | 0,0014 | 0,0187 | -92,58% |
+| 700  | 1.754,73 | 1.773,19 | -1,04% | 0,2218 | 0,2235 | -0,77% | 0,0013 | 0,0153 | -91,27% |
+| 800  | 1.603,89 | 1.643,83 | -2,43% | 0,2026 | 0,2064 | -1,83% | 0,0013 | 0,0125 | -89,86% |
+| 900  | 1.786,77 | 1.832,52 | -2,50% | 0,2258 | 0,2301 | -1,88% | 0,0013 | 0,0124 | -89,89% |
+| 1000 | 1.971,05 | 2.008,24 | -1,85% | 0,2492 | 0,2527 | -1,39% | 0,0012 | 0,0108 | -88,75% |
 
-### 5.2 Skenario 2 Dataset GoCJ Real (Mendeley Data)
+**LJFP konsisten unggul dari MCT di semua 6 ukuran** — makespan lebih rendah (-1,0% s/d -2,7%), energi lebih hemat (-0,8% s/d -2,0%), dan Degree of Imbalance turun drastis (-88,7% s/d -92,6%).
 
-| Metrik | LJFP (Diusulkan) | MCT (Baseline 1) | FCFS (Baseline 2) | LJFP vs MCT |
-|:---|:---:|:---:|:---:|:---:|
-| **① Makespan (s)** | **1.508,72** | 1.501,25 | 3.005,43 | +0,50% |
-| **② TEC (Joule)** | **685.982,3** | 683.287,8 | 1.209.307,6 | +0,39% |
-| **③ Degree of Imbalance** | **0,002252** | 0,017112 | 1,147668 | **-86,84%** |
-| **④ Resource Utilization (%)** | **30,00** | 30,00 | 26,64 | 0,00% |
-| **⑤ Throughput (task/s)** | **0,331407** | 0,333056 | 0,166366 | -0,50% |
+### 5.2 Skenario 2 — Dataset GoCJ (Real, Mendeley): LJFP vs MCT
 
-### 5.3 Analisis Hasil
+| N Task | Makespan LJFP (s) | Makespan MCT (s) | Δ% | TEC LJFP (kWh) | TEC MCT (kWh) | Δ% | DI LJFP | DI MCT | Δ% |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 500  | 1.508,72 | 1.501,25 | +0,50% | 0,1906 | 0,1898 | +0,39% | 0,0023 | 0,0171 | -86,84% |
+| 600  | 1.903,21 | 1.883,83 | +1,03% | 0,2406 | 0,2387 | +0,81% | 0,0016 | 0,0558 | -97,10% |
+| 700  | 2.020,67 | 2.019,03 | +0,08% | 0,2555 | 0,2553 | +0,07% | 0,0016 | 0,0199 | -91,96% |
+| 800  | 2.282,33 | 2.309,67 | -1,18% | 0,2887 | 0,2913 | -0,88% | 0,0022 | 0,0267 | -91,83% |
+| 900  | 2.762,39 | 2.723,40 | +1,43% | 0,3496 | 0,3459 | +1,09% | 0,0016 | 0,0324 | -95,01% |
+| 1000 | 2.982,22 | 2.972,77 | +0,32% | 0,3775 | 0,3765 | +0,27% | 0,0022 | 0,0271 | -91,92% |
 
-1. **Makespan**: LJFP unggul atas MCT pada kedua skenario (−2,69% sintetis; −0,15% log-normal) dan jauh mengungguli FCFS (>45% lebih cepat). Keunggulan terbesar terlihat pada dataset Weibull karena distribusinya sangat skewed di sinilah sorting LJFP paling berpengaruh.
+**Pada dataset GoCJ, makespan LJFP nyaris identik dengan MCT** (selisih di bawah 1,5%, dan di 4 dari 6 ukuran LJFP justru sedikit *lebih lambat* dari MCT) — tetapi **Degree of Imbalance LJFP tetap jauh lebih baik** (-86,8% s/d -97,1%), sama dramatisnya seperti di dataset Sintetis.
 
-2. **Degree of Imbalance (DI)**: Ini adalah keunggulan paling dramatis. LJFP mereduksi DI sebesar **92,60%** (sintetis) dan **98,00%** (log-normal) dibandingkan MCT. Nilai DI LJFP mendekati 0, artinya beban terdistribusi hampir sempurna.
+### 5.3 Catatan Temuan — FCFS Tidak Menyelesaikan Semua Task di 3 Ukuran GoCJ
 
-3. **Total Energy (TEC)**: Karena LJFP menyelesaikan pekerjaan lebih cepat (makespan lebih rendah), waktu host berstatus aktif lebih singkat → konsumsi energi lebih hemat hingga **−2,00%** vs MCT.
+| Dataset | Task Disubmit | Task Selesai (FCFS) | Task Hilang |
+|---|---:|---:|---:|
+| GoCJ-500  | 500  | 500 | 0 |
+| GoCJ-600  | 600  | **573** | **27** |
+| GoCJ-700  | 700  | **649** | **51** |
+| GoCJ-800  | 800  | 800 | 0 |
+| GoCJ-900  | 900  | **827** | **73** |
+| GoCJ-1000 | 1000 | 1000 | 0 |
 
-4. **Throughput**: LJFP memproses lebih banyak task per detik (+2,77% vs MCT pada skenario sintetis).
+LJFP dan MCT menyelesaikan 100% task di seluruh 36 eksperimen, tanpa kecuali. Hanya **FCFS** (baseline pembanding paling naif, round-robin tanpa pertimbangan ukuran task) yang kehilangan sebagian task — khusus di GoCJ ukuran 600, 700, dan 900 — kemungkinan karena pembagian task raksasa ke VM secara buta (tanpa sorting) membuat antrean di VM tertentu menumpuk dan tidak terselesaikan dalam simulasi. Akar penyebab persisnya belum ditelusuri lebih lanjut di level kode CloudSim Plus. Karena FCFS kehilangan task di 3 ukuran ini, **perbandingan makespan/TEC terhadap FCFS di GoCJ-600/700/900 tidak apple-to-apples** (FCFS mengerjakan lebih sedikit beban) dan tidak dipakai sebagai dasar klaim keunggulan LJFP — perbandingan utama tetap LJFP vs MCT, yang selalu selesai 100% di semua ukuran.
 
-5. **Turnaround Time**: LJFP memiliki turnaround time lebih tinggi dari MCT. Ini adalah trade-off yang *diharapkan*: LJFP memprioritas task besar ke VM cepat, sehingga task kecil harus menunggu lebih lama. Namun, **makespan keseluruhan lebih rendah** artinya sistem secara agregat lebih efisien.
+### 5.4 Analisis Skalabilitas & Pengaruh Dataset
 
+1. **Program tidak lagi terbatas di 500 task.** Seluruh pipeline (generator dataset, preprocessing GoCJ, dan loader CloudSim) kini mendukung ukuran dataset berapa pun — dibuktikan lewat 6 ukuran berbeda (500–1000) yang seluruhnya berhasil diproses oleh LJFP dan MCT tanpa kegagalan alokasi.
+
+2. **Perilaku dengan dataset lebih besar: makespan tumbuh, tapi tidak linear 1:1 dengan jumlah task.** Dari 500 → 1000 task (2×), makespan LJFP di Sintetis hanya naik 1,603× — lebih lambat dari pertambahan jumlah task, karena 20 VM yang tersedia bisa menyerap tambahan task secara paralel. Di GoCJ, pertumbuhannya hampir linear (1,977×), karena distribusi GoCJ lebih merata (bukan ekor panjang ekstrem seperti Weibull) sehingga setiap task tambahan menyumbang beban kerja yang relatif proporsional.
+
+3. **Ganti dataset memang memengaruhi performa LJFP, tapi tidak di semua metrik.** Untuk *makespan*, LJFP unggul konsisten di Sintetis (-1,0% s/d -2,7%) tetapi nyaris setara atau sedikit kalah dari MCT di GoCJ (+0,1% s/d +1,4%, kecuali di ukuran 800). Namun untuk *Degree of Imbalance*, keunggulan LJFP tetap sangat besar dan stabil (-87% s/d -97%) di kedua dataset, di semua ukuran — artinya langkah *sorting descending* pada LJFP selalu menjamin distribusi beban antar-VM yang jauh lebih merata, terlepas dari seberapa skewed datasetnya.
+
+4. **Kenapa perilakunya beda antar dataset — Sintetis vs GoCJ:** Dataset Sintetis sengaja dibangkitkan dengan distribusi Weibull shape=0,8 (highly skewed) — ekor panjang dengan proporsi task raksasa (mendekati 900.000 MI) yang signifikan. Kondisi ini persis sasaran LJFP: begitu task raksasa muncul, LJFP langsung mengantrekannya duluan ke VM tercepat, sehingga makespan ikut turun. Dataset GoCJ (real, dari file mentah yang kalian berikan) punya karakteristik berbeda: mayoritas nilai terkonsentrasi di rentang 15.000–150.000 MI dengan hanya segelintir outlier ekstrem (337.500 / 525.000 / 712.500 / 900.000). Karena proporsi task "raksasa" jauh lebih kecil, strategi *sort descending lalu greedy* (LJFP) menghasilkan urutan assignment yang nyaris sama dengan *greedy tanpa sorting* (MCT) — sehingga selisih makespan menipis bahkan kadang negatif. Tapi mekanisme intinya (task besar diprioritaskan) tetap bekerja untuk pemerataan beban (DI), terlepas dari seberapa ekstrem distribusinya.
 ---
 
 ## 6. Implementasi Real-World

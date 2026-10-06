@@ -37,11 +37,8 @@ import java.util.*;
  */
 public class MainSimulation {
 
-    private static final int MAX_TASKS = 500;
-
-    // Path dataset
-    private static final String SYNTHETIC_CSV = "dataset/synthetic_500tasks.csv";
-    private static final String GOCJ_CSV      = "dataset/gocj_500tasks.csv";
+    // Ukuran dataset yang diuji agar tidak hanya 500 task)
+    private static final int[]  DATASET_SIZES = {500, 600, 700, 800, 900, 1000};
     private static final String RESULTS_DIR   = "results";
 
     public static void main(String[] args) throws Exception {
@@ -53,41 +50,55 @@ public class MainSimulation {
         List<MetricsCollector.ExperimentResult> allResults = new ArrayList<>();
 
         // ═════════════════════════════════════════════════════════════════════
-        // SKENARIO 1: DATASET SINTETIS (500 Task, distribusi Weibull)
+        // SKENARIO 1: DATASET SINTETIS (Weibull) — SKALA BERTAHAP 500–1000 Task
         // ═════════════════════════════════════════════════════════════════════
-        System.out.println("\n" + "═".repeat(72));
-        System.out.println("  SKENARIO 1 : DATASET SINTETIS (500 TASK — DISTRIBUSI WEIBULL)");
-        System.out.println("═".repeat(72));
+        List<MetricsCollector.ExperimentResult> syntheticAll = new ArrayList<>();
+        for (int size : DATASET_SIZES) {
+            String syntheticCsv = "dataset/synthetic_" + size + "tasks.csv";
+            System.out.println("\n" + "═".repeat(72));
+            System.out.println("  SKENARIO 1 : DATASET SINTETIS (" + size + " TASK — DISTRIBUSI WEIBULL)");
+            System.out.println("═".repeat(72));
 
-        if (Files.exists(Path.of(SYNTHETIC_CSV))) {
-            List<MetricsCollector.ExperimentResult> s1 = runScenario(mode, SYNTHETIC_CSV, "Sintetis");
-            printComparisonIfFull(s1);
-            if (!s1.isEmpty()) {
-                MetricsCollector.exportToCsv(s1, RESULTS_DIR + "/synthetic_results.csv");
-                allResults.addAll(s1);
+            if (Files.exists(Path.of(syntheticCsv))) {
+                List<MetricsCollector.ExperimentResult> s1 = runScenario(mode, syntheticCsv, "Sintetis-" + size);
+                printComparisonIfFull(s1);
+                if (!s1.isEmpty()) {
+                    syntheticAll.addAll(s1);
+                    allResults.addAll(s1);
+                }
+            } else {
+                System.out.println("\n  ⚠  File dataset tidak ditemukan: " + syntheticCsv);
+                System.out.println("     Jalankan terlebih dahulu: python3 generate_dataset.py --n " + size);
             }
-        } else {
-            System.out.println("\n  ⚠  File dataset tidak ditemukan: " + SYNTHETIC_CSV);
-            System.out.println("     Jalankan terlebih dahulu: python3 generate_dataset.py");
+        }
+        if (!syntheticAll.isEmpty()) {
+            MetricsCollector.exportToCsv(syntheticAll, RESULTS_DIR + "/synthetic_results.csv");
         }
 
         // ═════════════════════════════════════════════════════════════════════
-        // SKENARIO 2: DATASET GoCJ (500 Task, Google Cloud Jobs)
+        // SKENARIO 2: DATASET GoCJ — SKALA BERTAHAP 500–1000 Task
         // ═════════════════════════════════════════════════════════════════════
-        System.out.println("\n\n" + "═".repeat(72));
-        System.out.println("  SKENARIO 2 : DATASET GoCJ (500 TASK — GOOGLE CLOUD JOBS)");
-        System.out.println("═".repeat(72));
+        List<MetricsCollector.ExperimentResult> gocjAll = new ArrayList<>();
+        for (int size : DATASET_SIZES) {
+            String gocjCsv = "dataset/gocj_" + size + "tasks.csv";
+            System.out.println("\n\n" + "═".repeat(72));
+            System.out.println("  SKENARIO 2 : DATASET GoCJ (" + size + " TASK — GOOGLE CLOUD JOBS)");
+            System.out.println("═".repeat(72));
 
-        if (Files.exists(Path.of(GOCJ_CSV))) {
-            List<MetricsCollector.ExperimentResult> s2 = runScenario(mode, GOCJ_CSV, "GoCJ");
-            printComparisonIfFull(s2);
-            if (!s2.isEmpty()) {
-                MetricsCollector.exportToCsv(s2, RESULTS_DIR + "/gocj_results.csv");
-                allResults.addAll(s2);
+            if (Files.exists(Path.of(gocjCsv))) {
+                List<MetricsCollector.ExperimentResult> s2 = runScenario(mode, gocjCsv, "GoCJ-" + size);
+                printComparisonIfFull(s2);
+                if (!s2.isEmpty()) {
+                    gocjAll.addAll(s2);
+                    allResults.addAll(s2);
+                }
+            } else {
+                System.out.println("\n  ⚠  File dataset tidak ditemukan: " + gocjCsv);
+                System.out.println("     Jalankan: python3 preprocess_gocj.py --input dataset/GoCJ_Dataset_" + size + ".txt");
             }
-        } else {
-            System.out.println("\n  ⚠  File dataset tidak ditemukan: " + GOCJ_CSV);
-            System.out.println("     Jalankan: python3 preprocess_gocj.py (setelah download dataset GoCJ)");
+        }
+        if (!gocjAll.isEmpty()) {
+            MetricsCollector.exportToCsv(gocjAll, RESULTS_DIR + "/gocj_results.csv");
         }
 
         // Simpan semua hasil gabungan
@@ -123,7 +134,6 @@ public class MainSimulation {
         System.out.printf("%n  ┌─────────────────────────────────────────────────────────┐%n");
         System.out.printf("  │  Algoritma : %-44s│%n", fullName(algorithm));
         System.out.printf("  │  Dataset   : %-44s│%n", datasetLabel);
-        System.out.printf("  │  Tasks     : %-44d│%n", MAX_TASKS);
         System.out.printf("  └─────────────────────────────────────────────────────────┘%n%n");
 
         // 1. Inisialisasi simulasi CloudSim Plus
@@ -139,7 +149,7 @@ public class MainSimulation {
 
         // 4. Muat dataset
         System.out.println("  [3/4] Memuat dataset " + datasetLabel + "...");
-        List<Cloudlet> cloudlets = DatasetLoader.loadFromCsv(csvPath, MAX_TASKS);
+        List<Cloudlet> cloudlets = DatasetLoader.loadFromCsv(csvPath, 0); // 0 = muat SEMUA baris di CSV, tidak di-cap 500
 
         // 5. Submit VM dan cloudlet ke broker
         broker.submitVmList(dc.vmList());
