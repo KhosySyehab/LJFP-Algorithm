@@ -76,9 +76,9 @@ public class DatacenterBuilder {
     // {PE_count, RAM_MB, MIPS_per_PE, num_units}
     // Kalkulasi kapasitas: 5×4GB + 7×2GB + 8×1GB = 20+14+8 = 42 GB < 56 GB host ✓
     private static final int[][] VM_TYPES = {
-        {4, 4096, 4000, 5},  // VM-Fastest  : 5 units, 4 vCPU, 4000 MIPS, 4 GB
-        {2, 2048, 2000, 7},  // VM-Standard : 7 units, 2 vCPU, 2000 MIPS, 2 GB
-        {1, 1024, 1000, 8},  // VM-Eco      : 8 units, 1 vCPU, 1000 MIPS, 1 GB
+        {4, 4096, 4000, 1},  // VM-Fastest  : 5 units, 4 vCPU, 4000 MIPS, 4 GB
+        {2, 2048, 2000, 1},  // VM-Standard : 7 units, 2 vCPU, 2000 MIPS, 2 GB
+        {1, 1024, 1000, 1},  // VM-Eco      : 8 units, 1 vCPU, 1000 MIPS, 1 GB
     };
     private static final String[] VM_CLASS_NAMES = {"VM-Fastest", "VM-Standard", "VM-Eco"};
     private static final long VM_STORAGE_MB = 10_000; // 10 GB per VM
@@ -93,14 +93,21 @@ public class DatacenterBuilder {
     public static DatacenterResult build(CloudSimPlus simulation) {
         List<Host> hostList = createHosts();
         List<Vm>   vmList   = createVms();
+        List<DataCenter> dcs = new ArrayList<>();
+
+        for (int i = 0 ; i< 3 ; i++){
+            dcs.add(new DatacenterSimple(simulation, createrHosts(), new VmAllocatuonPolicyBestFit() ))
+        }
 
         // Best-Fit: alokasikan VM ke host dengan resource paling mendekati kebutuhan
-        Datacenter datacenter = new DatacenterSimple(simulation, hostList, new VmAllocationPolicyBestFit());
+        //  Datacenter datacenter = new DatacenterSimple(simulation, hostList, new VmAllocationPolicyBestFit());
 
         printDatacenterSummary(hostList, vmList);
-
+ 
         return new DatacenterResult(datacenter, vmList);
     }
+
+   list<data
 
     // ── Private helpers ──────────────────────────────────────────────────────
 
