@@ -91,23 +91,27 @@ public class DatacenterBuilder {
      * @return DatacenterResult berisi datacenter dan daftar VM
      */
     public static DatacenterResult build(CloudSimPlus simulation) {
-        List<Host> hostList = createHosts();
-        List<Vm>   vmList   = createVms();
-        List<DataCenter> dcs = new ArrayList<>();
+        List<Host> allHosts = new ArrayList<>();
+        List<Vm> allVms = new ArrayList<>();
+        List<Datacenter> dcs = new ArrayList<>();
 
-        for (int i = 0 ; i< 3 ; i++){
-            dcs.add(new DatacenterSimple(simulation, createrHosts(), new VmAllocatuonPolicyBestFit() ))
+        for (int i = 0 ; i < 3 ; i++){
+            List<Host> hostList =  createHosts();
+            List<Vm> vmList = createVms();
+            dcs.add(new DatacenterSimple(simulation, hostList, new VmAllocationPolicyBestFit()));
+            allHosts.addAll(hostList);
+            allVms.addAll(vmList);
         }
 
         // Best-Fit: alokasikan VM ke host dengan resource paling mendekati kebutuhan
         //  Datacenter datacenter = new DatacenterSimple(simulation, hostList, new VmAllocationPolicyBestFit());
 
-        printDatacenterSummary(hostList, vmList);
+        printDatacenterSummary(allHosts, allVms);
  
-        return new DatacenterResult(datacenter, vmList);
+        return new DatacenterResult(dcs.get(0), allVms, allHosts);
     }
 
-   list<data
+
 
     // ── Private helpers ──────────────────────────────────────────────────────
 
@@ -191,5 +195,5 @@ public class DatacenterBuilder {
     }
 
     // ── Record ───────────────────────────────────────────────────────────────
-    public record DatacenterResult(Datacenter datacenter, List<Vm> vmList) {}
+    public record DatacenterResult(Datacenter datacenter, List<Vm> vmList, List<Host> allHosts) {}
 }
